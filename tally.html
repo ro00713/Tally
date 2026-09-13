@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tally — Household Ledger</title>
+
+<!-- ══ PWA Meta Tags ══ -->
+<meta name="application-name" content="Tally">
+<meta name="description" content="Your personal household ledger — track income, expenses, budgets and goals.">
+<meta name="theme-color" content="#050810">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tally">
+
+<!-- Apple touch icon -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%23050810'/%3E%3Ccircle cx='256' cy='256' r='210' fill='none' stroke='%23d4a017' stroke-width='6' opacity='0.5'/%3E%3Ccircle cx='256' cy='256' r='170' fill='none' stroke='%23d4a017' stroke-width='3' opacity='0.3'/%3E%3Cpolygon points='256,130 356,183 356,289 256,342 156,289 156,183' fill='%23d4a01710' stroke='%23d4a017' stroke-width='2' opacity='0.4'/%3E%3Ctext x='256' y='310' font-family='Georgia,serif' font-size='200' font-weight='700' text-anchor='middle' fill='%23d4a017' opacity='0.92'%3ET%3C/text%3E%3C/svg%3E">
+
+<!-- PWA Manifest (inline) -->
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Tally%20%E2%80%94%20Household%20Ledger%22%2C%22short_name%22%3A%22Tally%22%2C%22description%22%3A%22Your%20personal%20household%20ledger%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23050810%22%2C%22theme_color%22%3A%22%23050810%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%2520viewBox%3D'0%25200%2520512%2520512'%253E%253Crect%2520width%3D'512'%2520height%3D'512'%2520rx%3D'112'%2520fill%3D'%252305 0810'%2F%253E%253Ctext%2520x%3D'256'%2520y%3D'340'%2520font-size%3D'280'%2520text-anchor%3D'middle'%2520fill%3D'%2523d4a017'%253ET%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Source+Sans+3:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tally.css">
+
+<body>
+
+<!-- ═══════════════════════════ SPLASH SCREEN ═══════════════════════════ -->
+<div id="splashScreen">
+  <div class="splash-hatch-tl"></div>
+  <div class="splash-hatch-br"></div>
+  <div class="splash-bar-left"></div>
+  <div class="splash-bar-right"></div>
+
+  <!-- Animated orbit rings -->
+  <div class="splash-orbit" style="position:absolute;top:50%;left:50%;margin:-160px 0 0 -160px;"></div>
+  <div class="splash-orbit splash-orbit-2" style="position:absolute;top:50%;left:50%;margin:-130px 0 0 -130px;"></div>
+
+  <div class="splash-center">
+    <!-- the logo crest -->
+    <div class="splash-crest">
+      <div class="splash-crest-ring"></div>
+      <div class="splash-crest-ring-2"></div>
+      <div class="splash-crest-ring-3"></div>
+      <div class="splash-crest-hex"></div>
+      <div class="splash-corner splash-corner-tl"></div>
+      <div class="splash-corner splash-corner-tr"></div>
+      <div class="splash-corner splash-corner-bl"></div>
+      <div class="splash-corner splash-corner-br"></div>
+      <div class="splash-crest-inner">
+        <div class="splash-t-mark">T</div>
+        <div class="splash-crest-dot-line">
+          <div class="splash-crest-dot"></div>
+          <div class="splash-crest-dot"></div>
+          <div class="splash-crest-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="splash-brand-name">Tally</div>
+    <div class="splash-brand-subtitle">Household Ledger</div>
+    <div class="splash-tagline">Every rupee, accounted for</div>
+
+    <div class="splash-bar-wrap">
+      <div class="splash-bar-fill" id="splashBarFill"></div>
+    </div>
+    <div class="splash-loading-text" id="splashLoadingText">Preparing your ledger…</div>
+  </div>
+
+  <div class="splash-version">TALLY v3.0 — Enhanced Edition</div>
+</div>
+
+<!-- ═══════════════════════════ HOME / LANDING PAGE ═══════════════════════════ -->
+<div id="homePage">
+
+  <!-- Nav -->
+  <nav class="home-nav">
+    <div class="home-nav-logo">TALLY<span>.</span></div>
+    <div class="home-nav-right">
+      <button class="home-nav-link" onclick="homeToLogin()">Sign in</button>
+      <button class="home-nav-cta" onclick="homeToLogin()">Open Ledger</button>
+    </div>
+  </nav>
+
+  <!-- HERO — asymmetric split -->
+  <section class="home-hero">
+
+    <!-- Left: giant type -->
+    <div class="home-hero-left">
+      <div class="home-hero-bg-t" aria-hidden="true">T</div>
+      <div class="home-hero-year">Household Ledger · Est. 2024</div>
+      <div class="home-hero-title">Tally</div>
+      <span class="home-hero-title-line2">every rupee, accounted for.</span>
+      <p class="home-hero-body">Track income and expenses. Set budgets. Reach savings goals. All in one private ledger — your data never leaves your device.</p>
+      <div class="home-hero-actions">
+        <button class="home-btn-primary" onclick="homeToLogin()">Open Your Ledger</button>
+        <button class="home-btn-secondary" onclick="homeToLogin()">Create account</button>
+      </div>
+    </div>
+
+    <!-- Right: live scrolling ledger ticker -->
+    <div class="home-hero-right">
+      <div class="home-ticker-head">
+        <div class="home-ticker-label">September 2026 · Live Preview</div>
+        <div class="home-ticker-month">The Ledger</div>
+        <div class="home-ticker-net">+₹41,340</div>
+      </div>
+
+      <div class="home-ticker-scroll">
+        <div class="home-ticker-inner" id="homeTickerInner">
+          <!-- rows inserted twice for seamless loop by JS -->
+        </div>
+      </div>
+
+      <div class="home-ticker-foot">
+        <div class="htf-item">
+          <div class="htf-label">Income</div>
+          <div class="htf-val pos">₹60,000</div>
+        </div>
+        <div class="htf-item">
+          <div class="htf-label">Spent</div>
+          <div class="htf-val neg">₹18,660</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE BAND -->
+  <div class="home-marquee-band" aria-hidden="true">
+    <div class="home-marquee-track">
+      <span class="home-marquee-item">Full Ledger</span>
+      <span class="home-marquee-item accent">Monthly Budgets</span>
+      <span class="home-marquee-item">Savings Goals</span>
+      <span class="home-marquee-item accent">Recurring Entries</span>
+      <span class="home-marquee-item">Visual Charts</span>
+      <span class="home-marquee-item accent">PDF Export</span>
+      <span class="home-marquee-item">100% Private</span>
+      <span class="home-marquee-item accent">Built for India</span>
+      <span class="home-marquee-item">No Server</span>
+      <span class="home-marquee-item accent">Dark Mode</span>
+      <!-- duplicate for seamless loop -->
+      <span class="home-marquee-item">Full Ledger</span>
+      <span class="home-marquee-item accent">Monthly Budgets</span>
+      <span class="home-marquee-item">Savings Goals</span>
+      <span class="home-marquee-item accent">Recurring Entries</span>
+      <span class="home-marquee-item">Visual Charts</span>
+      <span class="home-marquee-item accent">PDF Export</span>
+      <span class="home-marquee-item">100% Private</span>
+      <span class="home-marquee-item accent">Built for India</span>
+      <span class="home-marquee-item">No Server</span>
+      <span class="home-marquee-item accent">Dark Mode</span>
+    </div>
+  </div>
+
+  <!-- FEATURES — ledger list layout -->
+  <div class="home-ledger-section">
+    <div class="home-ledger-aside">
+      <div class="home-ledger-aside-num" aria-hidden="true">06</div>
+      <div class="home-ledger-aside-title">Everything a household needs</div>
+      <p class="home-ledger-aside-body">Six tools working together — from daily entry to year-end review. No subscriptions, no cloud, no complexity.</p>
+    </div>
+
+    <div class="home-ledger-list">
+      <div class="home-ledger-item">
+        <div class="hli-num">01</div>
+        <div class="hli-content">
+          <div class="hli-name">Full Ledger</div>
+          <div class="hli-desc">Log every income and expense with dates, categories, and optional notes. Filter by month, search across years.</div>
+        </div>
+        <div class="hli-tag">Core</div>
+      </div>
+      <div class="home-ledger-item">
+        <div class="hli-num">02</div>
+        <div class="hli-content">
+          <div class="hli-name">Monthly Budgets</div>
+          <div class="hli-desc">Set spending limits per category. Visual bars show exactly where you stand — overspend shows in red before it's too late.</div>
+        </div>
+        <div class="hli-tag">Planning</div>
+      </div>
+      <div class="home-ledger-item">
+        <div class="hli-num">03</div>
+        <div class="hli-content">
+          <div class="hli-name">Savings Goals</div>
+          <div class="hli-desc">Emergency fund, vacation, new device — set a target, deposit from your balance, watch the progress bar fill.</div>
+        </div>
+        <div class="hli-tag">Goals</div>
+      </div>
+      <div class="home-ledger-item">
+        <div class="hli-num">04</div>
+        <div class="hli-content">
+          <div class="hli-name">Recurring Entries</div>
+          <div class="hli-desc">Define salary, rent, EMIs once. Post them in a single tap each period — no re-typing the same entries month after month.</div>
+        </div>
+        <div class="hli-tag">Automation</div>
+      </div>
+      <div class="home-ledger-item">
+        <div class="hli-num">05</div>
+        <div class="hli-content">
+          <div class="hli-name">Visual Charts</div>
+          <div class="hli-desc">12-month income vs. expense overview, category breakdown by spend, and a running balance line — all on graph paper.</div>
+        </div>
+        <div class="hli-tag">Insight</div>
+      </div>
+      <div class="home-ledger-item">
+        <div class="hli-num">06</div>
+        <div class="hli-content">
+          <div class="hli-name">PDF &amp; CSV Export</div>
+          <div class="hli-desc">Export any month or your full ledger as a printable PDF statement or a CSV file for your accountant or records.</div>
+        </div>
+        <div class="hli-tag">Export</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATEMENT STRIP -->
+  <div class="home-statement">
+    <div class="home-statement-col" data-char="∞">
+      <div class="hsc-label">Entries per ledger</div>
+      <div class="hsc-value">Unlimited</div>
+      <div class="hsc-sub">No caps, no tiers. Log as much as your household produces.</div>
+    </div>
+    <div class="home-statement-col" data-char="🔒">
+      <div class="hsc-label">Data stays on your device</div>
+      <div class="hsc-value pos">100% private</div>
+      <div class="hsc-sub">Nothing is ever sent to a server. Your ledger is yours alone.</div>
+    </div>
+    <div class="home-statement-col" data-char="₹">
+      <div class="hsc-label">Built for India</div>
+      <div class="hsc-value" style="font-size:clamp(32px,3.5vw,50px);letter-spacing:-1px;">₹ पैसे</div>
+      <div class="hsc-sub">Rupees, Indian date formats, categories tailored to Indian household spending.</div>
+    </div>
+  </div>
+
+  <!-- FOOTER CTA -->
+  <div class="home-footer-cta">
+    <div class="home-footer-cta-left">
+      <div class="home-footer-cta-title">Ready to keep <em>the books?</em></div>
+      <div class="home-footer-cta-sub">Create a free account in seconds. No email, no subscription — just a user ID and a password, and the ledger is yours.</div>
+    </div>
+    <div class="home-footer-cta-right">
+      <button class="home-btn-primary" onclick="homeToLogin()" style="font-size:15px;padding:16px 44px;">Start Your Ledger</button>
+      <div class="home-footer-cta-note">Free · Private · No account required to try</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="home-footer">
+    <div class="home-footer-brand">TALLY<span>.</span></div>
+    <div class="home-footer-copy">Household Ledger — Every rupee, accounted for</div>
+  </footer>
+</div>
+
+
+<!-- ═══════════════════════════ LOGIN OVERLAY ═══════════════════════════ -->
+<div id="loginOverlay" class="hidden">
+  <button class="login-theme-btn" id="themeToggleLogin" type="button">🌙 Dark</button>
+
+  <div class="login-layout">
+    <!-- LEFT: Brand panel -->
+    <div class="login-brand">
+      <div class="login-brand-accentbar" aria-hidden="true"></div>
+
+      <!-- Crest logo — matches splash style -->
+      <div class="login-crest-wrap" aria-hidden="true">
+        <!-- orbit rings -->
+        <div class="login-orbit"></div>
+        <div class="login-orbit login-orbit-2"></div>
+        <!-- crest -->
+        <div class="login-crest">
+          <div class="login-crest-ring"></div>
+          <div class="login-crest-ring login-crest-ring-2"></div>
+          <div class="login-crest-ring login-crest-ring-3"></div>
+          <div class="login-crest-hex"></div>
+          <div class="login-crest-corner login-cc-tl"></div>
+          <div class="login-crest-corner login-cc-tr"></div>
+          <div class="login-crest-corner login-cc-bl"></div>
+          <div class="login-crest-corner login-cc-br"></div>
+          <div class="login-crest-inner">
+            <div class="login-crest-t">T</div>
+            <div class="login-crest-dots">
+              <span class="login-cdot"></span>
+              <span class="login-cdot"></span>
+              <span class="login-cdot"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="login-brand-text">
+        <div class="login-brand-name">Tally<span>.</span></div>
+        <div class="login-brand-sub">Household Ledger</div>
+        <div class="login-tagline">Every rupee, accounted for</div>
+      </div>
+
+      <div class="login-quote">
+        <div class="login-quote-rule"></div>
+        <p>"Keep the books before the books keep you."</p>
+      </div>
+    </div>
+
+    <!-- RIGHT: Auth panel -->
+    <div class="login-auth">
+      <div class="login-col-rule" aria-hidden="true"></div>
+      <div class="login-corner-fold" aria-hidden="true"></div>
+      <div class="login-auth-inner">
+        <div class="login-auth-stamp" aria-hidden="true">
+          <div class="login-auth-stamp-inner">T.</div>
+        </div>
+        <div class="login-eyebrow">Open your ledger</div>
+        <h1 class="login-heading" id="loginHeading">Welcome back.</h1>
+
+        <div class="login-tabs" role="tablist">
+          <button class="login-tab login-tab-active" id="tabSignIn" role="tab" aria-selected="true" type="button" onclick="switchAuthTab('signin')">Sign in</button>
+          <button class="login-tab" id="tabSignUp" role="tab" aria-selected="false" type="button" onclick="switchAuthTab('signup')">New ledger</button>
+        </div>
+
+        <!-- Sign In -->
+        <div class="login-panel login-panel-active" id="panelSignin" role="tabpanel">
+          <form id="signInForm" novalidate>
+            <div class="login-field">
+              <label class="login-label" for="siUserId">User ID</label>
+              <input class="login-input" type="text" id="siUserId" placeholder="your-user-id" autocomplete="username">
+            </div>
+            <div class="login-field">
+              <label class="login-label" for="siPass">Password</label>
+              <input class="login-input" type="password" id="siPass" placeholder="••••••••" autocomplete="current-password">
+            </div>
+            <button class="login-btn" type="submit">
+              <span class="login-btn-dot" aria-hidden="true"></span>Open Ledger
+            </button>
+            <div class="login-form-footer">
+              <button class="login-text-link" type="button" id="forgotLink">Forgot password?</button>
+            </div>
+            <div class="login-error" id="siError" role="alert"></div>
+          </form>
+        </div>
+
+        <!-- Sign Up -->
+        <div class="login-panel" id="panelSignup" role="tabpanel" hidden>
+          <form id="signUpForm" novalidate>
+            <div class="login-field">
+              <label class="login-label" for="suFullName">Full Name</label>
+              <input class="login-input" type="text" id="suFullName" placeholder="e.g. Arjun Sharma" autocomplete="name">
+            </div>
+            <div class="login-fields-row">
+              <div class="login-field">
+                <label class="login-label" for="suEmail">Email</label>
+                <input class="login-input" type="email" id="suEmail" placeholder="you@example.com" autocomplete="email">
+              </div>
+              <div class="login-field">
+                <label class="login-label" for="suPhone">Phone</label>
+                <input class="login-input" type="tel" id="suPhone" placeholder="+91 98765 43210" autocomplete="tel">
+              </div>
+            </div>
+            <div class="login-field">
+              <label class="login-label" for="suUserId">User ID</label>
+              <input class="login-input" type="text" id="suUserId" placeholder="choose-a-user-id" autocomplete="username">
+            </div>
+            <div class="login-fields-row">
+              <div class="login-field">
+                <label class="login-label" for="suPass">Password</label>
+                <input class="login-input" type="password" id="suPass" placeholder="••••••••" autocomplete="new-password">
+              </div>
+              <div class="login-field">
+                <label class="login-label" for="suPassConfirm">Confirm</label>
+                <input class="login-input" type="password" id="suPassConfirm" placeholder="••••••••" autocomplete="new-password">
+              </div>
+            </div>
+            <button class="login-btn" type="submit">
+              <span class="login-btn-dot" aria-hidden="true"></span>Start Your Ledger
+            </button>
+            <div class="login-error" id="suError" role="alert"></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="login-footer-strip">
+        <div class="login-footer-cell">
+          <span class="login-footer-label">Month</span>
+          <span class="login-footer-val">—</span>
+        </div>
+        <div class="login-footer-cell">
+          <span class="login-footer-label">Income</span>
+          <span class="login-footer-val login-footer-pos">₹0.00</span>
+        </div>
+        <div class="login-footer-cell">
+          <span class="login-footer-label">Expenses</span>
+          <span class="login-footer-val login-footer-neg">₹0.00</span>
+        </div>
+        <div class="login-footer-cell">
+          <span class="login-footer-label">Balance</span>
+          <span class="login-footer-val">₹0.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Mobile overlay -->
+<div class="sb-mobile-overlay" id="sbMobileOverlay"></div>
+
+<!-- ═══════════════════════════ APP SHELL ═══════════════════════════ -->
+<div id="appShell" class="hidden">
+
+<!-- ── SIDEBAR ── -->
+<nav id="sidebar">
+  <div class="sb-top">
+    <div class="sb-logo">Tally<span>.</span></div>
+    <button class="sb-toggle" id="sbToggleBtn" title="Collapse sidebar">☰</button>
+  </div>
+
+  <button class="sb-new-btn" id="sbNewEntryBtn">
+    <span class="sb-icon">＋</span>
+    <span class="sb-new-label">New Entry</span>
+  </button>
+
+  <div class="sb-scroll">
+    <div class="sb-section-label">Navigate</div>
+    <button class="sb-nav-item active" id="sbNavDashboard">
+      <span class="sb-icon">🏠</span><span class="sb-nav-text">Dashboard</span>
+    </button>
+    <button class="sb-nav-item" id="sbNavLedger">
+      <span class="sb-icon">📒</span><span class="sb-nav-text">Ledger</span>
+    </button>
+    <button class="sb-nav-item" id="sbNavBudgets">
+      <span class="sb-icon">🎯</span><span class="sb-nav-text">Budgets</span>
+    </button>
+    <button class="sb-nav-item" id="sbNavGoals">
+      <span class="sb-icon">🏦</span><span class="sb-nav-text">Savings Goals</span>
+    </button>
+    <button class="sb-nav-item" id="sbNavRecurring">
+      <span class="sb-icon">🔁</span><span class="sb-nav-text">Recurring</span>
+    </button>
+    <button class="sb-nav-item" id="sbNavCharts">
+      <span class="sb-icon">📊</span><span class="sb-nav-text">Charts</span>
+    </button>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section-label">Recent Months</div>
+    <div id="sbMonthList"></div>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section-label">Account</div>
+    <button class="sb-nav-item" id="sbExportPdf">
+      <span class="sb-icon">📄</span><span class="sb-nav-text">Export PDF</span>
+    </button>
+    <button class="sb-nav-item" id="sbExportCsv">
+      <span class="sb-icon">📥</span><span class="sb-nav-text">Export CSV</span>
+    </button>
+    <button class="sb-nav-item" id="sbNavProfile">
+      <span class="sb-icon">👤</span><span class="sb-nav-text">Profile & Account</span>
+    </button>
+    <button class="sb-nav-item" id="sbNavGraphSheet">
+      <span class="sb-icon">📈</span><span class="sb-nav-text">Graph Sheet</span>
+    </button>
+    <button class="sb-nav-item" id="sbLogout">
+      <span class="sb-icon">↩</span><span class="sb-nav-text">Log out</span>
+    </button>
+  </div>
+
+  <div class="sb-bottom">
+    <div class="sb-user">
+      <div class="sb-avatar" id="sbAvatar">?</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name" id="sbUserName">—</div>
+        <div class="sb-user-plan">Free · Tally</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ── APP BODY ── -->
+<div id="appBody">
+
+<header>
+  <!-- Top nav bar -->
+  <div class="header-top">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="sb-open-btn" id="sbOpenBtn">☰</button>
+      <h1>Tally<span>.</span></h1>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" type="button">🌙 Dark</button>
+      <div class="menu-wrap">
+        <button class="theme-toggle menu-btn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">⋮</button>
+        <div class="menu-dropdown" id="menuDropdown">
+          <button class="menu-item" id="demoImportBtn" type="button" onclick="openDemoModal()">🗂️ Load sample data</button>
+          <div class="menu-divider"></div>
+          <button class="menu-item" id="shareBtn" type="button">📤 Share this month</button>
+          <button class="menu-item" id="exportCsvBtn" type="button">📥 Export CSV</button>
+          <button class="menu-item" id="copySummaryBtn" type="button">📋 Copy summary</button>
+          <div class="menu-divider"></div>
+          <button class="menu-item" id="exportPdfBtn" type="button">📄 Export PDF</button>
+          <button class="menu-item" id="printBtn" type="button">🖨️ Print view</button>
+          <div class="menu-divider"></div>
+          <button class="menu-item menu-item-danger" id="clearMonthBtn" type="button">🗑️ Clear this month</button>
+          <button class="menu-item menu-item-logout" id="menuLogoutBtn" type="button">↩ Log out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero greeting -->
+  <div class="header-hero">
+    <div>
+      <div class="header-greeting-line" id="headerGreetingLine">Your household ledger</div>
+      <div class="header-greeting-name" id="headerGreetingName">Good morning.</div>
+      <div class="header-greeting-sub" id="headerGreetingMonth">September 2026</div>
+    </div>
+    <div class="header-date-block" aria-hidden="true">
+      <div class="header-date-day" id="headerDateDay">13</div>
+      <div class="header-date-label" id="headerDateLabel">Sunday</div>
+    </div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="balance-strip">
+    <div class="item item-balance">
+      <div class="label"><span class="icon">◈</span> Balance</div>
+      <div class="val mono brass" id="totalBalance">₹0.00</div>
+    </div>
+    <div class="item item-spent">
+      <div class="label"><span class="icon">↓</span> Month Spent</div>
+      <div class="val mono neg" id="monthSpent">₹0.00</div>
+    </div>
+    <div class="item item-income">
+      <div class="label"><span class="icon">↑</span> Month Income</div>
+      <div class="val mono pos" id="monthIncome">₹0.00</div>
+    </div>
+    <div class="item item-savings">
+      <div class="label"><span class="icon">◎</span> Net Saved</div>
+      <div class="val mono blue" id="monthNet">₹0.00</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT COLUMN -->
+  <div>
+    <div class="card card-entry">
+      <h2>New Entry</h2>
+      <div class="toggle-row">
+        <button type="button" id="typeExpense" class="active expense">Expense</button>
+        <button type="button" id="typeIncome" class="income">Income</button>
+      </div>
+      <label>Amount (₹)</label>
+      <input type="number" id="fAmount" placeholder="0.00" min="0" step="0.01">
+      <label>Description</label>
+      <input type="text" id="fDesc" placeholder="e.g. Groceries at DMart">
+      <label id="catLabel">Category</label>
+      <select id="fCategory"></select>
+      <label>Note (optional)</label>
+      <input type="text" id="fNote" placeholder="Any extra detail…">
+      <label>Date</label>
+      <input type="date" id="fDate">
+      <button class="btn" id="addBtn">Add to Ledger</button>
+    </div>
+
+    <div class="card">
+      <h2>Monthly Budgets</h2>
+      <div id="budgetInputs"></div>
+      <div class="footnote">Set a monthly limit per category. Bars track spend vs budget.</div>
+    </div>
+
+    <div class="card">
+      <h2>Savings Goals</h2>
+      <div id="goalsList"></div>
+      <div class="goal-add-row">
+        <input type="text" id="goalName" placeholder="Goal name (e.g. Emergency Fund)">
+        <input type="number" id="goalTarget" placeholder="Target ₹" min="0" step="1">
+        <button class="btn" id="addGoalBtn" style="margin-top:8px;">Add Goal</button>
+      </div>
+      <div class="footnote">Deposit amounts from your balance toward any goal.</div>
+    </div>
+
+    <!-- NEW: Recurring Transactions Card -->
+    <div class="card">
+      <h2>Recurring Transactions</h2>
+      <div id="recurList"></div>
+      <div class="recur-add-row">
+        <div class="recur-fields">
+          <div>
+            <label>Name</label>
+            <input type="text" id="recurName" placeholder="e.g. Rent">
+          </div>
+          <div>
+            <label>Amount (₹)</label>
+            <input type="number" id="recurAmt" placeholder="0.00" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="recur-fields">
+          <div>
+            <label>Category</label>
+            <select id="recurCat"></select>
+          </div>
+          <div>
+            <label>Frequency</label>
+            <select id="recurFreq">
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+        </div>
+        <div class="recur-fields">
+          <div>
+            <label>Type</label>
+            <select id="recurType">
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn" id="addRecurBtn" style="margin-top:4px;">Add Recurring</button>
+      </div>
+      <div class="footnote">Post a recurring entry to today's date anytime.</div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    <!-- NEW: Quick Stats row -->
+    <div class="quick-stats" id="quickStats">
+      <div class="qs-item"><div class="qs-label">Biggest Expense</div><div class="qs-val neg" id="qsBig">—</div></div>
+      <div class="qs-item"><div class="qs-label">Avg Daily Spend</div><div class="qs-val neutral" id="qsAvg">—</div></div>
+      <div class="qs-item"><div class="qs-label">Days to Payday</div><div class="qs-val" id="qsDays">—</div></div>
+    </div>
+
+    <div class="ledger-wrap">
+      <div class="ledger-head">
+        <h2>The Ledger</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <!-- NEW: Search -->
+          <div class="search-wrap" style="margin-bottom:0;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search entries…" style="width:160px;padding:6px 10px 6px 30px;font-size:12px;">
+          </div>
+          <select id="monthFilter" style="width:auto;"></select>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Description</th><th>Category</th>
+            <th class="num">Amount (₹)</th><th class="num">Balance (₹)</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="ledgerBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty" style="display:none;">No entries yet. Add one on the left.</div>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <h2>Spend by Category — Graph Sheet</h2>
+      <div class="graph-wrap" id="breakdown"></div>
+      <div class="graph-legend" id="breakdownLegend"></div>
+    </div>
+
+    <div class="card graph-card" style="margin-top:18px;">
+      <div class="graph-card-header">
+        <h2>Graph Sheet</h2>
+        <div class="graph-tabs" role="tablist">
+          <button class="graph-tab active" id="gtabWeekly"  role="tab" onclick="switchGraphTab('weekly')">Weekly</button>
+          <button class="graph-tab"        id="gtabMonthly" role="tab" onclick="switchGraphTab('monthly')">Monthly</button>
+          <button class="graph-tab"        id="gtabYearly"  role="tab" onclick="switchGraphTab('yearly')">Yearly</button>
+        </div>
+      </div>
+
+      <!-- Weekly -->
+      <div class="graph-panel" id="gpanelWeekly">
+        <div class="graph-stats" id="graphStatsWeekly"></div>
+        <div class="graph-wrap" id="graphSheetWeekly"></div>
+        <div class="graph-legend">
+          <span><span class="swatch" style="background:var(--sage);"></span>Income</span>
+          <span><span class="swatch" style="background:var(--rust);"></span>Expense</span>
+          <span><span class="swatch" style="background:var(--brass);"></span>Balance</span>
+        </div>
+      </div>
+
+      <!-- Monthly -->
+      <div class="graph-panel hidden" id="gpanelMonthly">
+        <div class="graph-stats" id="graphStatsMonthly"></div>
+        <div class="graph-wrap" id="graphSheetMonthly"></div>
+        <div class="graph-legend">
+          <span><span class="swatch" style="background:var(--sage);"></span>Income</span>
+          <span><span class="swatch" style="background:var(--rust);"></span>Expense</span>
+          <span><span class="swatch" style="background:var(--brass);"></span>Balance</span>
+        </div>
+      </div>
+
+      <!-- Yearly -->
+      <div class="graph-panel hidden" id="gpanelYearly">
+        <div class="graph-stats" id="graphStatsYearly"></div>
+        <div class="graph-wrap" id="graphSheetYearly"></div>
+        <div class="graph-legend">
+          <span><span class="swatch" style="background:var(--sage);"></span>Income</span>
+          <span><span class="swatch" style="background:var(--rust);"></span>Expense</span>
+          <span><span class="swatch" style="background:var(--brass);"></span>Balance</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</div><!-- /appBody -->
+</div><!-- /appShell -->
+
+<!-- ═══════════ PROFILE & ACCOUNT PAGE ═══════════ -->
+<div id="profilePage">
+  <div class="pp-header">
+    <h1 class="pp-title">Profile<span> & </span>Account</h1>
+    <button class="pp-back-btn" id="ppBackBtn">← Back</button>
+  </div>
+  <div class="pp-body">
+    <div class="pp-avatar-card">
+      <div class="pp-big-avatar" id="ppBigAvatar">?</div>
+      <div class="pp-avatar-info">
+        <div class="pp-display-name" id="ppDisplayName">—</div>
+        <span class="pp-username-tag" id="ppUsernameTag">@—</span>
+      </div>
+    </div>
+    <div class="pp-section">
+      <div class="pp-section-head">🪪 Profile ID</div>
+      <div class="pp-row">
+        <div class="pp-row-label">🆔 User ID</div>
+        <div class="pp-row-value"><span id="ppUserIdText">—</span><button class="pp-copy-btn" id="ppCopyId" title="Copy">📋</button></div>
+      </div>
+      <div class="pp-row">
+        <div class="pp-row-label">📅 Member Since</div>
+        <div class="pp-row-value" id="ppMemberSince">—</div>
+      </div>
+      <div class="pp-row">
+        <div class="pp-row-label">📊 Total Entries</div>
+        <div class="pp-row-value" id="ppTotalEntries">0</div>
+      </div>
+      <div class="pp-row">
+        <div class="pp-row-label">💾 Storage Used</div>
+        <div class="pp-row-value" id="ppStorageUsed">—</div>
+      </div>
+    </div>
+    <div class="pp-section">
+      <div class="pp-section-head">✏️ Edit Profile</div>
+      <div class="pp-edit-row"><div class="pp-edit-label">Display Name</div><input class="pp-input" id="ppEditName" type="text" placeholder="Your name" maxlength="40"/></div>
+      <div class="pp-edit-row"><div class="pp-edit-label">Email</div><input class="pp-input" id="ppEditEmail" type="email" placeholder="your@email.com" maxlength="80"/></div>
+      <div class="pp-edit-row"><div class="pp-edit-label">Phone</div><input class="pp-input" id="ppEditPhone" type="tel" placeholder="+91 00000 00000" maxlength="20"/></div>
+      <button class="pp-save-btn" id="ppSaveBtn">💾 Save Changes</button>
+    </div>
+    <div class="pp-danger-section">
+      <div class="pp-danger-head">⚠️ Danger Zone</div>
+      <div class="pp-danger-desc">Deleting your account will <strong>permanently erase</strong> all your transactions, budgets, goals, and settings on this device. This <strong>cannot be undone</strong>.</div>
+      <button class="pp-delete-btn" id="ppDeleteBtn">🗑️ Delete My Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="pp-modal-overlay hidden" id="ppDeleteModal">
+  <div class="pp-modal">
+    <div class="pp-modal-icon">⚠️</div>
+    <div class="pp-modal-title">Delete Account?</div>
+    <div class="pp-modal-msg">Type your username <strong id="ppModalUsername">—</strong> to confirm.<br>All data will be erased permanently.</div>
+    <input class="pp-modal-input" id="ppModalInput" placeholder="type username here" autocomplete="off"/>
+    <div class="pp-modal-btns">
+      <button class="pp-modal-cancel" id="ppModalCancel">Cancel</button>
+      <button class="pp-modal-confirm" id="ppModalConfirm" disabled>Delete Forever</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ GRAPH SHEET PAGE ═══════════ -->
+<div id="graphSheetPage">
+  <div class="gs-header">
+    <div class="gs-title-row">
+      <h1 class="gs-title">Graph Sheet<span>.</span></h1>
+      <button class="gs-back-btn" id="gsBackBtn">← Back to Ledger</button>
+    </div>
+    <div class="gs-tabs">
+      <button class="gs-tab active" data-gstab="weekly">Weekly</button>
+      <button class="gs-tab" data-gstab="monthly">Monthly</button>
+      <button class="gs-tab" data-gstab="yearly">Yearly</button>
+    </div>
+  </div>
+  <div class="gs-summary">
+    <div class="gs-sum-card"><div class="gs-sum-label">Total Income</div><div class="gs-sum-val pos" id="gsSumIncome">—</div></div>
+    <div class="gs-sum-card"><div class="gs-sum-label">Total Spent</div><div class="gs-sum-val neg" id="gsSumSpent">—</div></div>
+    <div class="gs-sum-card"><div class="gs-sum-label">Net Saved</div><div class="gs-sum-val neutral" id="gsSumNet">—</div></div>
+    <div class="gs-sum-card"><div class="gs-sum-label">Savings Rate</div><div class="gs-sum-val" id="gsSumRate">—</div></div>
+  </div>
+  <div class="gs-body">
+    <!-- WEEKLY -->
+    <div class="gs-panel active" id="gsWeeklyPanel">
+      <div class="gs-chart-card">
+        <h3 class="gs-section-title">Last 12 Weeks — Income vs Expense</h3>
+        <div class="gs-chart-label">Green = income · Red = expense · Each pair = one week</div>
+        <div class="gs-graph-wrap" id="gsWeeklyBarWrap"></div>
+        <div class="gs-legend"><span><span class="swatch" style="background:var(--sage)"></span>Income</span><span><span class="swatch" style="background:var(--rust)"></span>Expense</span></div>
+      </div>
+      <div class="gs-chart-card">
+        <h3 class="gs-section-title">Weekly Running Balance</h3>
+        <div class="gs-graph-wrap" id="gsWeeklyBalWrap"></div>
+        <div class="gs-legend"><span><span class="swatch" style="background:var(--brass)"></span>Balance</span></div>
+      </div>
+      <div class="gs-chart-card">
+        <h3 class="gs-section-title">This Week — Spend by Category</h3>
+        <div class="gs-cat-grid" id="gsWeeklyCatGrid"></div>
+      </div>
+    </div>
+    <!-- MONTHLY -->
+    <div class="gs-panel" id="gsMonthlyPanel">
+      <div class="gs-chart-card">
+        <h3 class="gs-section-title">12-Month Overview — Income vs Expense</h3>
+        <div class="gs-chart-label">Bar pairs per month · Line = running balance</div>
+        <div class="gs-graph-wrap" id="gsMonthlyBarWrap"></div>
+        <div class="gs-legend"><span><span class="swatch" style="background:var(--sage)"></span>Income</span><span><span class="swatch" style="background:var(--rust)"></span>Expense</span><span><span class="swatch" style="background:var(--brass)"></span>Balance</span></div>
+      </div>
+      <div class="gs-chart-card">
+        <h3 class="gs-section-title">Monthly Savings Rate</h3>
+        <div class="gs-chart-label">% of income saved each month</div>
+        <div class="gs-graph-wrap" id="gsMonthlySavingsWrap"></div>
+        <div class="gs-legend"><span><span class="swatch" style="background:var(--brass)"></span>Savings Rate %</span></div>
+      </div>
+      <div class="gs-chart-card">
+        <h3 class="gs-section-title">This Month — Spend by Category</h3>
+        <div class="gs-cat-grid" id="gsMonthlyCatGrid"></div>
+      </div>
+    </div>
+    <!-- YEARLY -->
+    <div class="gs-panel" id="gsYearlyPanel">
+      <div class="gs-chart-card">
+        <h3 class="gs-section-title">Year-on-Year Overview</h3>
+        <div class="gs-chart-label">Income · Expense · Net per year</div>
+        <div class="gs-graph-wrap" id="gsYearlyBarWrap"></div>
+        <div class="gs-legend"><span><span class="swatch" style="background:var(--sage)"></span>Income</span><span><span class="swatch" style="background:var(--rust)"></span>Expense</span><span><span class="swatch" style="background:var(--brass)"></span>Net</span></div>
+      </div>
+      <div class="gs-chart-card">
+        <h3 class="gs-section-title">Year-by-Year Category Breakdown</h3>
+        <div class="gs-graph-wrap" id="gsYearlyCatWrap"></div>
+        <div class="gs-legend" id="gsYearlyCatLegend"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<!-- Edit Transaction Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <h3>Edit Entry</h3>
+    <input type="hidden" id="editId">
+    <label>Description</label>
+    <input type="text" id="editDesc" placeholder="Description">
+    <label>Amount (₹)</label>
+    <input type="number" id="editAmt" min="0" step="0.01" placeholder="0.00">
+    <label>Category</label>
+    <select id="editCat"></select>
+    <label>Note (optional)</label>
+    <input type="text" id="editNote" placeholder="Any extra detail…">
+    <label>Date</label>
+    <input type="date" id="editDate">
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="editCancelBtn" type="button">Cancel</button>
+      <button class="btn" id="editSaveBtn" type="button">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+
+<!-- ═══════════════════════════ PDF EXPORT OVERLAY ═══════════════════════════ -->
+<div id="pdfOverlay">
+  <div id="pdfBox">
+    <h2>📄 Export PDF</h2>
+    <p>Choose what to include in your PDF report.</p>
+    <div class="pdf-options">
+      <label class="pdf-option">
+        <input type="radio" name="pdfScope" value="month" checked>
+        Current month transactions
+      </label>
+      <label class="pdf-option">
+        <input type="radio" name="pdfScope" value="summary">
+        Monthly summary (income, spent, by category)
+      </label>
+      <label class="pdf-option">
+        <input type="radio" name="pdfScope" value="all">
+        All transactions (full ledger)
+      </label>
+    </div>
+    <div class="pdf-actions">
+      <button class="pdf-cancel" id="pdfCancelBtn">Cancel</button>
+      <button class="pdf-go" id="pdfGenerateBtn">Generate PDF</button>
+    </div>
+  </div>
+</div>
+
+<iframe id="pdfPrintFrame"></iframe>
+
+
+
+
+
+
+
+<!-- Demo Data Import Modal -->
+<div class="demo-overlay" id="demoImportOverlay">
+  <div class="demo-modal">
+    <div class="demo-modal-icon">🗂️</div>
+    <h3 class="demo-modal-title">Load Sample Data</h3>
+    <p class="demo-modal-body">This loads <strong>126 real-looking transactions</strong> for the full year 2024 — salary, rent, groceries, travel, and more — so you can explore Tally with live data right away.</p>
+    <div class="demo-modal-stats">
+      <div class="demo-stat"><span class="demo-stat-val pos">₹9,00,000</span><span class="demo-stat-lbl">Income</span></div>
+      <div class="demo-stat"><span class="demo-stat-val neg">₹4,95,900</span><span class="demo-stat-lbl">Spent</span></div>
+      <div class="demo-stat"><span class="demo-stat-val blue">₹4,04,100</span><span class="demo-stat-lbl">Net saved</span></div>
+    </div>
+    <div class="demo-modal-actions">
+      <button class="demo-btn-cancel" onclick="closeDemoModal()">Cancel</button>
+      <button class="demo-btn-import" onclick="importDemoData()">Import Sample Data</button>
+    </div>
+    <p class="demo-modal-note">Your existing entries are kept. Sample entries can be cleared later via "Clear all data".</p>
+  </div>
+</div>
+
+<script src="tally.js"></script>
+
+<!-- ══ PWA: Install Banner (Android/Chrome) ══ -->
+<div id="pwaInstallBanner">
+  <div class="pwa-banner-icon">T.</div>
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title">Install Tally</div>
+    <div class="pwa-banner-sub">Add to home screen — works offline, no app store needed</div>
+  </div>
+  <div class="pwa-banner-actions">
+    <button class="pwa-install-btn" id="pwaInstallBtn">Install</button>
+    <button class="pwa-dismiss-btn" id="pwaDismissBtn">Not now</button>
+  </div>
+</div>
+
+<!-- ══ PWA: iOS Safari tip ══ -->
+<div id="pwaIosTip">
+  <div class="ios-tip-title">Add Tally to Home Screen</div>
+  <div class="ios-tip-body">
+    Tap the <strong>Share ⎙</strong> button below,<br>
+    then choose <strong>"Add to Home Screen"</strong><br>
+    to install Tally as an app.
+  </div>
+  <button class="ios-tip-close" id="pwaIosTipClose">Got it</button>
+</div>
+
+<!-- ══ PWA: Offline / Online toasts ══ -->
+<div id="pwaOfflineToast">📵 Offline — all data still saved locally</div>
+<div id="pwaOnlineToast">✓ Back online</div>
+
+</body>
+</html>
